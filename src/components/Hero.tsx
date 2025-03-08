@@ -118,7 +118,7 @@ const Hero: React.FC = () => {
                 className="bg-[length:300%_auto]"
                 duration={4}
               >
-                Always Be Ahead11
+                Always Be Ahead
               </AnimatedGradientText>
               <div className="h-2 sm:h-2.5 lg:h-3" />
               <span className="text-white">AI Built Just For You</span>
