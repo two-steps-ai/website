@@ -1,16 +1,11 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  Suspense
-} from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { SplineScene } from './ui/splite';
-import Section from './common/Section';
-import AnimatedGradientText from './common/AnimatedGradientText';
-import { useIntersectionObserver } from '../utils/performance/hooks';
+import React, { useEffect, useRef, useCallback, Suspense } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { SplineScene } from "./ui/splite";
+import Section from "./common/Section";
+import AnimatedGradientText from "./common/AnimatedGradientText";
+import { useIntersectionObserver } from "../utils/performance/hooks";
 
 /**
  * Hero
@@ -25,7 +20,7 @@ import { useIntersectionObserver } from '../utils/performance/hooks';
 const Hero: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const [setIntersectionRef, isVisible] = useIntersectionObserver({
-    threshold: 0.1
+    threshold: 0.1,
   });
 
   const mouseX = useMotionValue(0);
@@ -66,7 +61,7 @@ const Hero: React.FC = () => {
   }, [mouseX, mouseY]);
 
   const handleBookCall = useCallback(() => {
-    window.open('https://calendly.com/yoniinsell/30min', '_blank');
+    window.open("https://calendly.com/yoniinsell/30min", "_blank");
   }, []);
 
   return (
@@ -123,7 +118,7 @@ const Hero: React.FC = () => {
                 className="bg-[length:300%_auto]"
                 duration={4}
               >
-                Always Be Ahead
+                Always Be Ahead11
               </AnimatedGradientText>
               <div className="h-2 sm:h-2.5 lg:h-3" />
               <span className="text-white">AI Built Just For You</span>
@@ -131,7 +126,7 @@ const Hero: React.FC = () => {
 
             {/* Subtext */}
             <p className="text-gray-400 text-[15px] sm:text-base lg:text-lg leading-[1.8] tracking-[-0.01em]">
-              At Two Steps, our process is simple:{' '}
+              At Two Steps, our process is simple:{" "}
               <span className="font-semibold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
                 You Bring The Vision,
               </span>
@@ -195,7 +190,7 @@ const Hero: React.FC = () => {
             transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
           >
             <motion.div
-              style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+              style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
               className="w-full h-full rounded-xl overflow-hidden"
             >
               {/* Adjusted scale for an even bigger robot */}
