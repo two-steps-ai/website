@@ -1,0 +1,45 @@
+/* stylelint-disable */
+/* PostCSS Language Server configuration */
+/* @import 'tailwindcss'; */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles that may cause linting issues */
+html {
+  scroll-behavior: smooth;
+  font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+  will-change: scroll-position;
+}
+
+/* CSS containment properties */
+.contain-paint {
+  -webkit-contain: paint;
+  contain: paint;
+}
+.contain-layout {
+  -webkit-contain: layout;
+  contain: layout;
+}
+.contain-strict {
+  -webkit-contain: strict;
+  contain: strict;
+}
+
+/* Scrollbar styling */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(17, 24, 39, 0.1);
+}
+
+/* Backdrop filter */
+.glass-effect, .glass-card, .glass-button {
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
