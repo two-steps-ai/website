@@ -17,7 +17,7 @@ const team: TeamMember[] = [
   {
     name: "Jonathan Insell",
     role: "CEO & Founder", 
-    image: "/Yoni.jpg",
+    image: "/public/Yoni.jpg",
     gradient: "from-blue-500 to-indigo-500",
     social: {
       linkedin: "https://www.linkedin.com/in/jonathan-charles-insell/",
