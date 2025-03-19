@@ -1,13 +1,13 @@
-import React, { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { MessageSquareText, Users, Clock, Zap } from 'lucide-react';
 import DashboardContainer from './shared/DashboardContainer';
 import MetricsGrid from './shared/MetricsGrid';
 import AgentCard from './shared/AgentCard';
 import WidgetContainer from './WidgetContainer';
-// Removed unused import: ErrorBoundary
 import { Metric, GradientStyle, AgentMetrics } from './types';
 
-const metrics: Metric[] = [
+// Move static data outside component to prevent recreation on each render
+const METRICS: Metric[] = [
   {
     label: 'Live Conversations',
     value: '1,234',
@@ -38,7 +38,7 @@ const metrics: Metric[] = [
   },
 ];
 
-const agents = [
+const AGENTS = [
   {
     id: 1,
     name: 'Customer Success Agent',
@@ -83,28 +83,35 @@ const agents = [
   },
 ];
 
-const ChatDashboard: React.FC = () => {
+// Memoize the dashboard container props to prevent unnecessary re-renders
+const DASHBOARD_PROPS = {
+  title: "AI Chat Agents",
+  subtitle: "Manage your AI chat agents",
+  icon: MessageSquareText,
+  gradient: 'from-purple-500 to-pink-500' as GradientStyle,
+  buttonLabel: "New Chat Agent"
+};
+
+const ChatDashboard = () => {
   const [activeChat, setActiveChat] = useState<number | null>(null);
 
+  // This callback is good as is, already memoized correctly
   const handleAgentClick = useCallback((id: number) => {
     setActiveChat(prev => (prev === id ? null : id));
   }, []);
 
+  // Memory optimization: pre-calculate if widget should be shown
+  const isWidgetOpen = activeChat !== null;
+
   return (
     <>
-      <DashboardContainer
-        title="AI Chat Agents"
-        subtitle="Manage your AI chat agents"
-        icon={MessageSquareText}
-        gradient="from-purple-500 to-pink-500"
-        buttonLabel="New Chat Agent"
-      >
-        {/* Metrics Grid */}
-        <MetricsGrid metrics={metrics} />
+      <DashboardContainer {...DASHBOARD_PROPS}>
+        {/* Metrics Grid - using the correct props format */}
+        <MetricsGrid metrics={METRICS} />
 
         {/* Agents Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {agents.map(agent => (
+          {AGENTS.map(agent => (
             <AgentCard
               key={agent.id}
               {...agent}
@@ -116,12 +123,14 @@ const ChatDashboard: React.FC = () => {
         </div>
       </DashboardContainer>
 
-      {/* Chat Widget */}
-      <WidgetContainer 
-        isOpen={activeChat !== null}
-        onClose={() => setActiveChat(null)}
-        mode="chat"
-      />
+      {/* Only render the widget container when needed */}
+      {isWidgetOpen && (
+        <WidgetContainer 
+          isOpen={true}
+          onClose={() => setActiveChat(null)}
+          mode="chat"
+        />
+      )}
     </>
   );
 };

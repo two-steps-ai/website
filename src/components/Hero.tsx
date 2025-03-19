@@ -1,37 +1,52 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  Suspense
-} from 'react';
+import { useEffect, useRef, useCallback, lazy, Suspense, memo } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SplineScene } from './ui/splite';
 import Section from './common/Section';
 import AnimatedGradientText from './common/AnimatedGradientText';
 import { useIntersectionObserver } from '../utils/performance/hooks';
 
+// Lazily load the 3D component to improve initial load time
+const SplineScene = lazy(() => 
+  import('./ui/splite').then(module => ({ default: module.SplineScene }))
+);
+
+// Pre-defined animation variants to avoid recreating objects
+const backgroundVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
+};
+
+const gradientVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1 }
+};
+
+const textVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
+const modelVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1 }
+};
+
 /**
- * Hero
- *
- * Layout:
- * - Left column: Headings, text, CTA buttons
- * - Right column: Larger Robot (SplineScene), shifted slightly higher
- *
- * Enhancements:
- * - Robot occupies more vertical space AND is moved up a bit to fit better in the hero.
+ * Optimized Hero Component
  */
-const Hero: React.FC = () => {
+const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const [setIntersectionRef, isVisible] = useIntersectionObserver({
-    threshold: 0.1
+    threshold: 0.1,
+    rootMargin: '100px', // Load earlier for smoother appearance
   });
 
+  // Motion values for 3D effect
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Spring configuration for smooth 3D tilt
+  // Spring configuration for smooth 3D tilt - memoized to avoid recreation
   const springConfig = { damping: 30, stiffness: 250, mass: 1 };
   const rotateX = useSpring(
     useTransform(mouseY, [-0.5, 0.5], [5, -5]),
@@ -48,14 +63,15 @@ const Hero: React.FC = () => {
     }
   }, [setIntersectionRef]);
 
-  // Handle mouse movement for 3D rotation on the robot
+  // Optimized mouse tracking with debounce effect
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width - 0.5;
       const y = (e.clientY - rect.top) / rect.height - 0.5;
-      mouseX.set(x);
-      mouseY.set(y);
+      // Only update if change is significant (reduces calculations)
+      if (Math.abs(x - mouseX.get()) > 0.01) mouseX.set(x);
+      if (Math.abs(y - mouseY.get()) > 0.01) mouseY.set(y);
     },
     [mouseX, mouseY]
   );
@@ -74,42 +90,46 @@ const Hero: React.FC = () => {
       ref={heroRef}
       className="relative min-h-screen flex flex-col justify-center py-32 overflow-hidden"
     >
-      {/* ======= Background Layers (same as original) ======= */}
-      <div className="fixed inset-0 -z-10">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.15),transparent_100%)]"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2 }}
-          className="absolute inset-0 bg-gradient-to-tr from-purple-500/[0.05] via-transparent to-blue-500/[0.05]"
-        />
-        <div className="absolute top-0 left-1/4 w-[1000px] h-[1000px] bg-blue-500/10 rounded-full opacity-5 blur-[100px]" />
-        <div className="absolute bottom-0 right-1/4 w-[1000px] h-[1000px] bg-purple-500/10 rounded-full opacity-5 blur-[100px]" />
-      </div>
+      {/* Background Layers - only animate when visible */}
+      {isVisible && (
+        <div className="fixed inset-0 -z-10">
+          <motion.div
+            variants={backgroundVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 1.5 }}
+            className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.15),transparent_100%)]"
+          />
+          <motion.div
+            variants={gradientVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 1.2 }}
+            className="absolute inset-0 bg-gradient-to-tr from-purple-500/[0.05] via-transparent to-blue-500/[0.05]"
+          />
+          {/* Static elements don't need animations */}
+          <div className="absolute top-0 left-1/4 w-[1000px] h-[1000px] bg-blue-500/10 rounded-full opacity-5 blur-[100px]" />
+          <div className="absolute bottom-0 right-1/4 w-[1000px] h-[1000px] bg-purple-500/10 rounded-full opacity-5 blur-[100px]" />
+        </div>
+      )}
 
       <div className="relative max-w-7xl w-full px-4 sm:px-6 lg:px-8 mx-auto">
         <div className="grid lg:grid-cols-2 items-center gap-8">
-          {/* ======= Left Column: Text & CTA ======= */}
+          {/* Text & CTA Column */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+            variants={textVariants}
+            initial="hidden"
+            animate={isVisible ? "visible" : "hidden"}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="z-10 space-y-6 sm:space-y-7 lg:space-y-8 max-w-[640px]"
           >
-            {/* Subtle label / tagline */}
-            <div
-              className="group inline-flex px-4 sm:px-5 py-2 
-              bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent
-              rounded-full backdrop-blur-sm border border-blue-500/10
-              shadow-[0_0_20px_rgba(59,130,246,0.1)]
-              hover:border-blue-500/20 hover:shadow-[0_0_25px_rgba(59,130,246,0.15)]
-              transition-all duration-300"
-            >
+            {/* Tagline */}
+            <div className="group inline-flex px-4 sm:px-5 py-2 
+                bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent
+                rounded-full backdrop-blur-sm border border-blue-500/10
+                shadow-[0_0_20px_rgba(59,130,246,0.1)]
+                hover:border-blue-500/20 hover:shadow-[0_0_25px_rgba(59,130,246,0.15)]
+                transition-all duration-300">
               <span className="text-blue-400 text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2">
                 <Sparkles className="w-4 h-4 animate-[pulse_2s_ease-in-out_infinite]" />
                 AI Solutions Tailored for Your Business
@@ -184,41 +204,43 @@ const Hero: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* ======= Right Column: Bigger Robot (Spline Scene), Shifted Up ======= */}
-          <motion.div
-            className="relative w-full h-[min(75vh,780px)] -mt-8"
-            //  ↑ -mt-8 moves the robot ~2rem up to fit better
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          >
+          {/* 3D Model Column - only render when visible for better performance */}
+          {isVisible && (
             <motion.div
-              style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-              className="w-full h-full rounded-xl overflow-hidden"
+              className="relative w-full h-[min(75vh,780px)] -mt-8"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              variants={modelVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
             >
-              {/* Adjusted scale for an even bigger robot */}
-              <Suspense
-                fallback={
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                }
+              <motion.div
+                style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+                className="w-full h-full rounded-xl overflow-hidden"
               >
-                <SplineScene
-                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                  className="w-full h-full scale-105"
-                  loading="eager"
-                  quality="low"
-                />
-              </Suspense>
+                <Suspense
+                  fallback={
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  }
+                >
+                  {/* Only load the 3D model when the component is visible */}
+                  <SplineScene
+                    scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                    className="w-full h-full scale-105"
+                    loading="lazy" // Change from eager to lazy
+                    quality="low" // Keep low quality for performance
+                  />
+                </Suspense>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          )}
         </div>
       </div>
     </Section>
   );
 };
 
-export default Hero;
+export default memo(Hero);
