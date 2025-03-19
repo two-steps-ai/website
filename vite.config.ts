@@ -72,5 +72,6 @@ export default defineConfig({
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY'
     }
-  }
+  },
+  base: '/'
 });
